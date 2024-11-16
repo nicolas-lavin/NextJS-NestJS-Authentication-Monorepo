@@ -84,3 +84,5 @@ export const signIn = async (
     };
   }
 };
+
+export const refreshToken = async () => {};
