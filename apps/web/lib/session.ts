@@ -10,7 +10,7 @@ export type Session = {
     name: string;
   };
   accessToken: string;
-  //   refreshToken: string;
+  refreshToken: string;
 };
 
 const encodedKey = new TextEncoder().encode(process.env.SECRET_KEY);

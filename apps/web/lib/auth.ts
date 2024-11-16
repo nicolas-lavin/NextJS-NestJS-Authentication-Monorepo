@@ -72,6 +72,7 @@ export const signIn = async (
         name: result.name,
       },
       accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
     });
     console.log({ result });
 
