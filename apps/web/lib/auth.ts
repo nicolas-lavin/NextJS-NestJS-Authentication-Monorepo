@@ -85,4 +85,37 @@ export const signIn = async (
   }
 };
 
-export const refreshToken = async () => {};
+export const refreshToken = async (oldRefreshToken: string) => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/auth/refresh`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        refresh: oldRefreshToken,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to refresh token" + response.statusText);
+    }
+
+    const { accessToken, refreshToken } = await response.json();
+    const updateRes = await fetch("http://localhost:3000/api/auth/update", {
+      method: "POST",
+      body: JSON.stringify({
+        accessToken,
+        refreshToken,
+      }),
+    });
+    console.log(updateRes);
+
+    if (!updateRes.ok) throw new Error("Failed to update the tokens");
+
+    return accessToken;
+  } catch (err) {
+    console.error("Refresh Token failed:", err);
+    return null;
+  }
+};
