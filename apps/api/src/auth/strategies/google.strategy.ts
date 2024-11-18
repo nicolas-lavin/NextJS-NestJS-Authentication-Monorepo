@@ -33,5 +33,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
     });
 
     done(null, user);
+    // return user
+    // request.user
   }
 }

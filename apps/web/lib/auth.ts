@@ -70,6 +70,7 @@ export const signIn = async (
       user: {
         id: result.userId,
         name: result.name,
+        role: result.role,
       },
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,
