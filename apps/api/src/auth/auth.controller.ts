@@ -15,6 +15,7 @@ import { JwtAuthGuard } from './guards/jwt-auth/jwt-auth.guard';
 import { RefreshAuthGuard } from './guards/refresh-auth/refresh-auth.guard';
 import { GoogleAuthGuard } from './guards/google-auth/google-auth.guard';
 import { Response } from 'express';
+import { Public } from './decorators/public.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -24,6 +25,7 @@ export class AuthController {
   registerUser(@Body() createUserDto: CreateUserDto) {
     return this.authService.registerUser(createUserDto);
   }
+  @Public()
   @UseGuards(LocalAuthGuard)
   @Post('signin')
   login(@Request() req) {
@@ -31,14 +33,13 @@ export class AuthController {
     return this.authService.login(id, name);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get('protected')
   getAll(@Request() req) {
     return {
       messege: `Now you can access this protected API. this is your user ID: ${req.user.id}`,
     };
   }
-
+  @Public()
   @UseGuards(RefreshAuthGuard)
   @Post('refresh')
   refreshTokens(@Request() req) {
@@ -46,10 +47,12 @@ export class AuthController {
     return this.authService.refreshToken(id, name);
   }
 
+  @Public()
   @UseGuards(GoogleAuthGuard)
   @Get('google/login')
   googleLogin() {}
 
+  @Public()
   @UseGuards(GoogleAuthGuard)
   @Get('google/callback')
   async googleCallback(@Request() req, @Res() res: Response) {
