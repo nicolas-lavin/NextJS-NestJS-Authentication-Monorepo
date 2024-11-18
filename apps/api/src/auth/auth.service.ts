@@ -4,7 +4,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { verify } from 'argon2';
+import { hash, verify } from 'argon2';
 import { CreateUserDto } from 'src/user/dto/user.dto';
 import { UserService } from 'src/user/user.service';
 import { AuthJwtPayload } from './types/auth.jwtPayload';
@@ -39,6 +39,10 @@ export class AuthService {
 
   async login(userId: number, name: string) {
     const { accessToken, refreshToken } = await this.generateTokens(userId);
+
+    const hashedRefreshToken = await hash(refreshToken);
+    await this.userService.updateHashedRefreshToken(userId, hashedRefreshToken);
+
     return {
       id: userId,
       name,
@@ -64,17 +68,28 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('User not found!');
     return { id: user?.id };
   }
-  async validateRefreshToken(userId: number) {
+  async validateRefreshToken(userId: number, refreshToken: string) {
     const user = await this.userService.findOne(userId);
     if (!user) throw new UnauthorizedException('User not found!');
-    return { id: user?.id };
+
+    const refreshTokenMatched = await verify(
+      user.hashedRefreshToken,
+      refreshToken,
+    );
+
+    if (!refreshTokenMatched)
+      throw new UnauthorizedException('Invalid Refresh Token!');
+    const currentUser = { id: user.id };
+    return currentUser;
   }
 
   async refreshToken(userId: number, name: string) {
     const { accessToken, refreshToken } = await this.generateTokens(userId);
+    const hashedRT = await hash(refreshToken);
+    await this.userService.updateHashedRefreshToken(userId, hashedRT);
     return {
       id: userId,
-      name,
+      name: name,
       accessToken,
       refreshToken,
     };
@@ -84,5 +99,9 @@ export class AuthService {
     const user = await this.userService.findByEmail(googleUser.email);
     if (user) return user;
     return await this.userService.create(googleUser);
+  }
+
+  async signOut(userId: number) {
+    return await this.userService.updateHashedRefreshToken(userId, null);
   }
 }

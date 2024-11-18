@@ -16,7 +16,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       clientID: googleConfig.clientID,
       clientSecret: googleConfig.clientSecret,
       callbackURL: googleConfig.callbackURL,
-      scope: ['profile', 'email'],
+      scope: ['email', 'profile'],
     });
   }
 

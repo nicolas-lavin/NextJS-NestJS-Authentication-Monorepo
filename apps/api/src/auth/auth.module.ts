@@ -28,7 +28,7 @@ import { GoogleStrategy } from './strategies/google.strategy';
     LocalStrategy,
     JwtStrategy,
     RefreshStrategy,
-    GoogleStrategy
+    GoogleStrategy,
   ],
 })
 export class AuthModule {}

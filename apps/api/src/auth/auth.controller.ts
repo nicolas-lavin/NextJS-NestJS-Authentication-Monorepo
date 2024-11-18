@@ -5,6 +5,8 @@ import {
   UseGuards,
   Request,
   Get,
+  Res,
+  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from 'src/user/dto/user.dto';
@@ -12,6 +14,7 @@ import { LocalAuthGuard } from './guards/local-auth/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth/jwt-auth.guard';
 import { RefreshAuthGuard } from './guards/refresh-auth/refresh-auth.guard';
 import { GoogleAuthGuard } from './guards/google-auth/google-auth.guard';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -49,7 +52,16 @@ export class AuthController {
 
   @UseGuards(GoogleAuthGuard)
   @Get('google/callback')
-  googleCallback(@Request() req) {
-    console.log('Google User', req.user);
+  async googleCallback(@Request() req, @Res() res: Response) {
+    const { name, accessToken, refreshToken, id } =
+      await this.authService.login(req.user.id, req.user.name);
+    res.redirect(
+      `http://localhost:3000/api/auth/google/callback?userId=${id}&name=${name}&accessToken=${accessToken}&refreshToken=${refreshToken}`,
+    );
+  }
+
+  @Post('signout')
+  signOut(@Req() req) {
+    return this.authService.signOut(req.user.id);
   }
 }
