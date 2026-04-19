@@ -1,122 +1,136 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { BACKEND_URL } from "./constants";
-import { FormState, LoginFormSchema, SignupFormSchema } from "./type";
+import {
+	FormState,
+	InstanceResponse,
+	RefreshTokenRequest,
+	RefreshTokenResponse,
+	SignInRequest,
+	SignInResponse,
+} from "./type";
+import { LoginFormSchema, SignupFormSchema } from "./schema";
 import { createSession } from "./session";
-
-// export const signup = validatedAction(
-//   SignupFormSchema,
-//   async (data, formData) => {}
-// );
+import instance from "./axios";
+import axios from "axios";
 
 export const signup = async (
-  state: FormState,
-  formData: FormData
+	state: FormState,
+	formData: FormData,
 ): Promise<FormState> => {
-  const formDataObject = Object.fromEntries(formData.entries());
-  const validationFields = SignupFormSchema.safeParse(formDataObject);
+	try {
+		const formDataObject = Object.fromEntries(formData.entries());
+		const validationFields = SignupFormSchema.safeParse(formDataObject);
 
-  if (!validationFields.success) {
-    return {
-      error: validationFields.error.flatten().fieldErrors,
-    };
-  }
+		if (!validationFields.success) {
+			return {
+				error: validationFields.error.flatten().fieldErrors,
+			};
+		}
 
-  const response = await fetch(`${BACKEND_URL}/auth/signup`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(validationFields.data),
-  });
+		const response = await instance.post<InstanceResponse<{ message: string }>>(
+			"/auth/signup",
+			validationFields.data,
+		);
 
-  if (response.ok) {
-    redirect("/auth/signin");
-  } else {
-    return {
-      message:
-        response.status === 409
-          ? "The user is already existed!"
-          : response.statusText,
-    };
-  }
+		console.log("RESPONSE: ", response);
+
+		redirect("/auth/signin");
+	} catch (error) {
+		if (axios.isAxiosError(error)) {
+			if (error.response) {
+				return {
+					message:
+						error.response.status === 409
+							? "The user is already existed!"
+							: error.response.statusText,
+				};
+			}
+		} else {
+			return {
+				message: "An unexpected error occurred. Please try again.",
+			};
+		}
+	}
 };
 
 export const signIn = async (
-  state: FormState,
-  formData: FormData
+	state: FormState,
+	formData: FormData,
 ): Promise<FormState> => {
-  const formDataObject = Object.fromEntries(formData.entries());
-  const validationFields = LoginFormSchema.safeParse(formDataObject);
+	try {
+		const formDataObject = Object.fromEntries(formData.entries());
+		const validationFields = LoginFormSchema.safeParse(formDataObject);
 
-  if (!validationFields.success) {
-    return {
-      error: validationFields.error.flatten().fieldErrors,
-    };
-  }
+		if (!validationFields.success) {
+			return {
+				error: validationFields.error.flatten().fieldErrors,
+			};
+		}
 
-  const response = await fetch(`${BACKEND_URL}/auth/signin`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(validationFields.data),
-  });
+		const response = await instance.post<
+			SignInRequest,
+			InstanceResponse<SignInResponse>
+		>("/auth/signin", validationFields.data);
 
-  if (response.ok) {
-    const result = await response.json();
-    await createSession({
-      user: {
-        id: result.userId,
-        name: result.name,
-        role: result.role,
-      },
-      accessToken: result.accessToken,
-      refreshToken: result.refreshToken,
-    });
-    console.log({ result });
+		const result = response.data;
 
-    redirect("/");
-  } else {
-    return {
-      message:
-        response.status === 401 ? "Invalid credentials!" : response.statusText,
-    };
-  }
+		await createSession({
+			user: {
+				id: result.id,
+				name: result.name,
+				role: result.role,
+			},
+			accessToken: result.accessToken,
+			refreshToken: result.refreshToken,
+		});
+	} catch (error) {
+		if (axios.isAxiosError(error)) {
+			if (error.response) {
+				return {
+					message:
+						error.response.status === 401
+							? "Invalid credentials, please try again"
+							: error.response.statusText,
+				};
+			}
+		} else {
+			return {
+				message: "An unexpected error occurred. Please try again.",
+			};
+		}
+	}
+	redirect("/");
 };
 
 export const refreshToken = async (oldRefreshToken: string) => {
-  try {
-    const response = await fetch(`${BACKEND_URL}/auth/refresh`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        refresh: oldRefreshToken,
-      }),
-    });
+	try {
+		const response = await instance.post<
+			RefreshTokenRequest,
+			InstanceResponse<RefreshTokenResponse>
+		>("/auth/refresh", {
+			refresh: oldRefreshToken,
+		});
 
-    if (!response.ok) {
-      throw new Error("Failed to refresh token" + response.statusText);
-    }
+		if (response.status !== 201) {
+			throw new Error("Failed to refresh token" + response.statusText);
+		}
 
-    const { accessToken, refreshToken } = await response.json();
-    const updateRes = await fetch("http://localhost:3000/api/auth/update", {
-      method: "POST",
-      body: JSON.stringify({
-        accessToken,
-        refreshToken,
-      }),
-    });
-    console.log(updateRes);
+		const { accessToken, refreshToken } = response.data;
 
-    if (!updateRes.ok) throw new Error("Failed to update the tokens");
+		const updateRes = await fetch("http://localhost:3000/api/auth/update", {
+			method: "POST",
+			body: JSON.stringify({
+				accessToken,
+				refreshToken,
+			}),
+		});
 
-    return accessToken;
-  } catch (err) {
-    console.error("Refresh Token failed:", err);
-    return null;
-  }
+		if (!updateRes.ok) throw new Error("Failed to update the tokens");
+
+		return accessToken;
+	} catch (err) {
+		console.error("Refresh Token failed:", err);
+		return null;
+	}
 };

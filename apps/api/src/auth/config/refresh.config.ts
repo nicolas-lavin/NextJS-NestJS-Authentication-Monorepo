@@ -5,6 +5,6 @@ export default registerAs(
   'refresh-jwt',
   (): JwtSignOptions => ({
     secret: process.env.REFRESH_JWT_SECRET_KEY,
-    expiresIn: process.env.REFRESH_JWT_EXPIRES_IN,
+    expiresIn: parseInt(process.env.REFRESH_JWT_EXPIRES_IN, 10) * 24 * 60 * 60, // Convert days to seconds
   }),
 );

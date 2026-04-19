@@ -4,13 +4,13 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { UserService } from 'src/user/user.service';
+import { UserService } from '@src/user/user.service';
 import { hash, verify } from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import refreshConfig from './config/refresh.config';
 import { ConfigType } from '@nestjs/config';
 import { Role } from '@prisma/client';
-import { CreateUserDto } from 'src/user/dto/user.dto';
+import { CreateUserDto } from '@src/user/dto/user.dto';
 import type { AuthJwtPayload } from './types/auth.jwtPayload';
 
 @Injectable()
@@ -30,7 +30,7 @@ export class AuthService {
   async validateLocalUser(email: string, password: string) {
     const user = await this.userService.findByEmail(email);
     if (!user) throw new UnauthorizedException('User not found!');
-    const isPasswordMatched = verify(user.password, password);
+    const isPasswordMatched = await verify(user.password, password);
     if (!isPasswordMatched)
       throw new UnauthorizedException('Invalid Credentials!');
 
@@ -41,26 +41,31 @@ export class AuthService {
     const { accessToken, refreshToken } = await this.generateTokens(userId);
     const hashedRT = await hash(refreshToken);
     await this.userService.updateHashedRefreshToken(userId, hashedRT);
-    return {
+    const response = {
       id: userId,
       name: name,
       role,
       accessToken,
       refreshToken,
     };
+    return response;
   }
 
   async generateTokens(userId: number) {
     const payload: AuthJwtPayload = { sub: userId };
-    const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(payload),
-      this.jwtService.signAsync(payload, this.refreshTokenConfig),
-    ]);
+    try {
+      const [accessToken, refreshToken] = await Promise.all([
+        this.jwtService.signAsync(payload),
+        this.jwtService.signAsync(payload, this.refreshTokenConfig),
+      ]);
 
-    return {
-      accessToken,
-      refreshToken,
-    };
+      return {
+        accessToken,
+        refreshToken,
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Token generation failed!');
+    }
   }
 
   async validateJwtUser(userId: number) {
