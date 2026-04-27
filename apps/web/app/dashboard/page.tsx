@@ -1,14 +1,7 @@
-import { getSession } from "@/lib/session";
-import { Role } from "@/lib/type";
-import { redirect } from "next/navigation";
 import React from "react";
 import { Table } from "@radix-ui/themes";
 
 const Dashboard = async () => {
-	const session = await getSession();
-
-	if (!session || !session?.user) redirect("/auth/signin");
-	if (session?.user?.role !== Role.ADMIN) redirect("/auth/signin");
 	return (
 		<Table.Root>
 			<Table.Header>

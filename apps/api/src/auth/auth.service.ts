@@ -111,4 +111,15 @@ export class AuthService {
   async signOut(userId: number) {
     return await this.userService.updateHashedRefreshToken(userId, null);
   }
+
+  async getProfile(userId: number) {
+    const user = await this.userService.findOne(userId);
+    if (!user) throw new UnauthorizedException('User not found!');
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    };
+  }
 }

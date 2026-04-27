@@ -8,6 +8,7 @@ const HeaderBar = () => {
 			<Link href={"/"}>Home</Link>
 			<Link href={"/dashboard"}>Dashboard</Link>
 			<Link href={"/profile"}>Profile</Link>
+			<Link href={"/partners"}>Partners</Link>
 			<SignInButton />
 		</div>
 	);

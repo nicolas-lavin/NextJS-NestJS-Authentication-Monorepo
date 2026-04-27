@@ -8,11 +8,13 @@ import {
 	RefreshTokenResponse,
 	SignInRequest,
 	SignInResponse,
+	UpdateTokenRequest,
 } from "./type";
 import { LoginFormSchema, SignupFormSchema } from "./schema";
 import { createSession } from "./session";
 import instance from "./axios";
 import axios from "axios";
+import { LOCAL_API_URL } from "./constants";
 
 export const signup = async (
 	state: FormState,
@@ -32,8 +34,6 @@ export const signup = async (
 			"/auth/signup",
 			validationFields.data,
 		);
-
-		console.log("RESPONSE: ", response);
 
 		redirect("/auth/signin");
 	} catch (error) {
@@ -104,33 +104,30 @@ export const signIn = async (
 };
 
 export const refreshToken = async (oldRefreshToken: string) => {
-	try {
-		const response = await instance.post<
-			RefreshTokenRequest,
-			InstanceResponse<RefreshTokenResponse>
-		>("/auth/refresh", {
-			refresh: oldRefreshToken,
-		});
+	const urlRefresh = "/auth/refresh";
+	const response = await instance.post<
+		RefreshTokenRequest,
+		InstanceResponse<RefreshTokenResponse>
+	>(urlRefresh, {
+		refresh: oldRefreshToken,
+	});
 
-		if (response.status !== 201) {
-			throw new Error("Failed to refresh token" + response.statusText);
-		}
-
-		const { accessToken, refreshToken } = response.data;
-
-		const updateRes = await fetch("http://localhost:3000/api/auth/update", {
-			method: "POST",
-			body: JSON.stringify({
-				accessToken,
-				refreshToken,
-			}),
-		});
-
-		if (!updateRes.ok) throw new Error("Failed to update the tokens");
-
-		return accessToken;
-	} catch (err) {
-		console.error("Refresh Token failed:", err);
-		return null;
+	if (response.status !== 201) {
+		throw new Error("Failed to refresh token" + response.statusText);
 	}
+
+	const { accessToken, refreshToken } = response.data;
+	const urlUpdate = `${LOCAL_API_URL}/auth/update`;
+
+	const updateRes = await instance.post<InstanceResponse<UpdateTokenRequest>>(
+		urlUpdate,
+		{
+			accessToken,
+			refreshToken,
+		},
+	);
+
+	if (updateRes.status !== 201) throw new Error("Failed to update the tokens");
+
+	return accessToken;
 };

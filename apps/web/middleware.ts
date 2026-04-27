@@ -1,14 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "./lib/session";
+import { getProfile } from "./lib/actions";
+import { deleteSession } from "./lib/session";
+
+const publicRoutes = ["/", "/auth/signin", "/auth/signup"];
 
 export default async function middleware(req: NextRequest) {
-  const session = await getSession();
-  if (!session || !session.user)
-    return NextResponse.redirect(new URL("/auth/signin", req.nextUrl));
+	const isPublicRoute = publicRoutes.includes(req.nextUrl.pathname);
+	if (isPublicRoute) {
+		return NextResponse.next();
+	}
 
-  NextResponse.next();
+	try {
+		await getProfile();
+		return NextResponse.next();
+	} catch (error) {
+		console.error("Error fetching profile:", error);
+		await deleteSession();
+		return NextResponse.redirect(new URL("/auth/signin", req.nextUrl));
+	}
 }
 
 export const config = {
-  matcher: ["/profile"],
+	matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };

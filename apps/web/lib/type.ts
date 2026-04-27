@@ -38,6 +38,17 @@ export type RefreshTokenResponse = {
 	refreshToken: string;
 };
 
+export type UpdateTokenRequest = {
+	accessToken: string;
+	refreshToken: string;
+};
+
+export type Profile = {
+	id: string;
+	name: string;
+	role: Role;
+};
+
 export enum Role {
 	ADMIN = "ADMIN",
 	EDITOR = "EDITOR",

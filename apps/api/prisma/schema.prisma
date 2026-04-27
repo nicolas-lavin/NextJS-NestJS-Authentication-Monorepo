@@ -53,6 +53,40 @@ model Category {
   Posts Post[]
 }
 
+model Partner {
+  id    Int     @id @default(autoincrement())
+  name String
+  firstLastName String
+  secondLastName String?
+  email String
+  PartnerStatusHistory PartnerStatusHistory[]
+  PartnerPaymentInstallment PartnerPaymentInstallment[]
+}
+
+model PartnerStatusHistory {
+  id Int @id @default(autoincrement())
+  entryDate DateTime @default(now())
+  exitDate DateTime?
+  partner Partner @relation(fields: [partnerId], references: [id])
+  partnerId Int
+  status PartnerStatus
+}
+
+model PartnerPaymentInstallment {
+  id Int @id @default(autoincrement())
+  partner Partner @relation(fields: [partnerId], references: [id])
+  partnerId Int
+  amount Float
+  payPeriod String
+  dueDate DateTime
+  paid Boolean @default(false)
+}
+
+enum PartnerStatus {
+  ACTIVE
+  INACTIVE
+}
+
 enum Role {
   ADMIN
   EDITOR

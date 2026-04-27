@@ -1,6 +1,6 @@
 "use server";
 
-import { jwtVerify, SignJWT } from "jose";
+import { jwtVerify, SignJWT, decodeJwt } from "jose";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Role } from "./type";
@@ -46,8 +46,8 @@ export async function getSession() {
 
 		return payload as Session;
 	} catch (error) {
-		console.log(error);
-		redirect("/auth/signin");
+		console.log("ERROR IN SESSION: ", error);
+		throw new Error("Invalid session");
 	}
 }
 

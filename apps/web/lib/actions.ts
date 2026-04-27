@@ -1,18 +1,11 @@
 "use server";
 
-import { authFetch } from "./authFetch";
-import { BACKEND_URL } from "./constants";
-import { getSession } from "./session";
+import { instanceProtected } from "./axios";
+import { InstanceResponse, Profile } from "./type";
 
 export const getProfile = async () => {
-  // const session = await getSession();
-  // const res = await fetch(`${BACKEND_URL}/auth/protected`, {
-  //   headers: {
-  //     authorization: `Bearer ${session?.accessToken}`,
-  //   },
-  // });
-
-  const response = await authFetch(`${BACKEND_URL}/auth/protected`);
-  const result = await response.json();
-  return result;
+	const url = "/auth/profile";
+	const response = await instanceProtected.get<InstanceResponse<Profile>>(url);
+	const result = response.data;
+	return result;
 };
