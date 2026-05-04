@@ -1,12 +1,13 @@
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
-import { Avatar, Badge, Box, Card, Flex, Inset, Text } from "@radix-ui/themes";
+import { Avatar, Badge, Card, Flex, Text } from "@radix-ui/themes";
+import { PartnerStatus } from "@/lib/type";
 
 type PartnerCardProps = {
 	name: string;
 	email: string;
-	status: "active" | "inactive";
+	status: PartnerStatus;
 	className?: string;
 };
 
@@ -24,7 +25,9 @@ const PartnerCard = ({ name, email, status, className }: PartnerCardProps) => {
 				<Text as="p" size="2" color="gray">
 					{email}
 				</Text>
-				<Badge color={status === "active" ? "green" : "red"}>{status}</Badge>
+				<Badge color={status === PartnerStatus.ACTIVE ? "green" : "red"}>
+					{status}
+				</Badge>
 			</Flex>
 		</Card>
 	);

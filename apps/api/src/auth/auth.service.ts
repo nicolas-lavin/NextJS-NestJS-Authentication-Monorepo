@@ -9,7 +9,7 @@ import { hash, verify } from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import refreshConfig from './config/refresh.config';
 import { ConfigType } from '@nestjs/config';
-import { Role } from '@prisma/client';
+import { Role } from '@generated/client';
 import { CreateUserDto } from '@src/user/dto/user.dto';
 import type { AuthJwtPayload } from './types/auth.jwtPayload';
 

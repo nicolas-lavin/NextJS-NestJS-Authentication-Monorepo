@@ -5,11 +5,13 @@ import { PrismaService } from './prisma/prisma.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
+import { PartnerModule } from './partner/partner.module';
 
 @Module({
   imports: [
     AuthModule,
     UserModule,
+    PartnerModule,
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
   ],
   controllers: [AppController],

@@ -49,8 +49,23 @@ export type Profile = {
 	role: Role;
 };
 
+export type Partner = {
+	name: string;
+	firstLastName: string;
+	secondLastName: string;
+	email: string;
+	status: PartnerStatus;
+};
+
+export type VariantT = "success" | "error" | "info";
+
 export enum Role {
 	ADMIN = "ADMIN",
 	EDITOR = "EDITOR",
 	USER = "USER",
+}
+
+export enum PartnerStatus {
+	ACTIVE = "ACTIVE",
+	INACTIVE = "INACTIVE",
 }

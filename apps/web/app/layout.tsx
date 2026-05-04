@@ -4,6 +4,8 @@ import "./globals.css";
 import HeaderBar from "@/components/ui/header";
 import "@radix-ui/themes/styles.css";
 import { Theme } from "@radix-ui/themes";
+import Providers from "./providers";
+import SnackBar from "@/components/ui/snackBar";
 
 const geistSans = localFont({
 	src: "./fonts/GeistVF.woff",
@@ -28,8 +30,11 @@ export default function RootLayout({
 		<html lang="en">
 			<body className={`${geistSans.variable} ${geistMono.variable}`}>
 				<Theme>
-					<HeaderBar />
-					{children}
+					<Providers>
+						<HeaderBar />
+						{children}
+					</Providers>
+					<SnackBar />
 				</Theme>
 			</body>
 		</html>
